@@ -16,11 +16,21 @@ attr_reader (:description)
   end
 
   define_method(:==) do |another_task|
-    self.description().==(another_task.description())
+    self.description == another_task.description
   end
 
   define_method(:save) do
-    DB.exec("INSERT INTO tasks (description) VALUES ('#{@description}');")
+    result = DB.exec("INSERT INTO tasks (description) VALUES ('#{@description}') returning id;")
+    @id = result.first().fetch('id').to_i()
   end
-  
+
+  def clear
+    DB.exec("DELETE FROM tasks *;")
+  end
+
+  def remove
+      DB.exec("DELETE from tasks WHERE description = '#{@description}';")
+  end
+
+
 end
