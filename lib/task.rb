@@ -1,8 +1,9 @@
 class Task
-attr_reader (:description)
+  attr_reader(:description, :list_id)
 
   define_method(:initialize) do |attributes|
     @description = attributes.fetch(:description)
+    @list_id = attributes.fetch(:list_id)
   end
 
   define_singleton_method(:all) do
@@ -10,27 +11,17 @@ attr_reader (:description)
     tasks = []
     returned_tasks.each() do |task|
       description = task.fetch("description")
-      tasks.push(Task.new({:description => description}))
+      list_id = task.fetch("list_id").to_i()
+      tasks.push(Task.new({:description => description, :list_id => list_id}))
     end
     tasks
   end
 
-  define_method(:==) do |another_task|
-    self.description == another_task.description
-  end
-
   define_method(:save) do
-    result = DB.exec("INSERT INTO tasks (description) VALUES ('#{@description}') returning id;")
-    @id = result.first().fetch('id').to_i()
+    DB.exec("INSERT INTO tasks (description, list_id) VALUES ('#{@description}', #{@list_id});")
   end
 
-  def clear
-    DB.exec("DELETE FROM tasks *;")
+  define_method(:==) do |another_task|
+    self.description().==(another_task.description()).&(self.list_id().==(another_task.list_id()))
   end
-
-  def remove
-      DB.exec("DELETE from tasks WHERE description = '#{@description}';")
-  end
-
-
 end
